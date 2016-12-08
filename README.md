@@ -1,4 +1,4 @@
-# Scrapy: Just another Python scraper
+# Mini-scrapy: Just another Python scraper
 
 This is just a scraper I built for finding, downloading, and replacing external assets in open source projects. It might be useful if you're trying to deploy an open-source project on a local network (without Internet access).
 
