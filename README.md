@@ -13,7 +13,7 @@ Just make sure you have Python and `wget` installed.
 Copy this script into your project, and run:
 
 ```
-scrapy.py scrape
+./scrapy.py scrape
 ``` 
 
 This will build the external assets list (by default `links.txt`). Check which ones you want to download, delete the ones you don't, and download them by running:
