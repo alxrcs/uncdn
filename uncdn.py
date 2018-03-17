@@ -8,9 +8,14 @@ from argparse import ArgumentParser
 OUTPUT_FOLDERNAME = 'external'
 OUTPUT_LINKS_FILENAME = 'links.txt'
 
+DEFAULT_EXCLUDED_SCRAPE = ['.git', '.vscode', 'bower_components', 'node_modules', OUTPUT_FOLDERNAME]
+DEFAULT_EXCLUDED_INTERNALIZE = DEFAULT_EXCLUDED_SCRAPE + [OUTPUT_LINKS_FILENAME]
+
+DEFAULT_EXTERNAL_ASSETS_REGEX = r'(http(s)?:)?//(\w|\.|/|:|\-|\d|=|\?)+\.(svg|png|jpg|jpeg|js|css|ico|gif)'
+
 def get_file_list(directories_to_skip):
     files_to_scan = []
-    for dirpath, dirnames, filenames in os.walk('.'):
+    for dirpath, _, filenames in os.walk('.'):
         omit = False
         for skippable_dir in directories_to_skip:
             if skippable_dir in dirpath:
@@ -30,12 +35,7 @@ def external_urls(filename, url_pattern):
                 yield add_prefix_if_needed(match.group(0))
 
 def add_prefix_if_needed(url):
-    if url.startswith('//'):
-        return 'http:' + url
-    return url
-
-def filename_for(url):
-    return url.split('/')[-1]
+    return 'http:' + url if url.startswith('//') else url
 
 def scrape(args):
     directories_to_skip = args.exclude
@@ -47,11 +47,14 @@ def scrape(args):
         urls.extend(external_urls(filename, url_pattern))
     urls = sorted(set(urls))
 
-    # Save file list
-    with open(OUTPUT_LINKS_FILENAME, 'w') as file_list:
-        for url in urls:
-            file_list.write(url + "\n")
-            print('wrote url ' + url)
+    if len(urls) > 0:
+        # Save file list
+        with open(OUTPUT_LINKS_FILENAME, 'w') as file_list:
+            for url in urls:
+                file_list.write(url + "\n")
+                print('Wrote url ' + url)
+    else:
+        print('No external urls found. Are you running this from the right folder?')
 
 def download_assets(args):
     if not os.path.exists(OUTPUT_FOLDERNAME):
@@ -93,7 +96,7 @@ def internalize(args):
 
 def main():
     parser = ArgumentParser(
-        description='an external resource downloader from source code'
+        description='A simple external assets downloader from source code',
     )
 
     subparsers = parser.add_subparsers(
@@ -106,17 +109,17 @@ def main():
 
     # parser for 'scrape' action
     scrape_parser = subparsers.add_parser('scrape')
-    scrape_parser.add_argument('--exclude', default=['.git', '.vscode', 'bower_components', 'node_modules', OUTPUT_FOLDERNAME])
-    scrape_parser.add_argument('--pattern', default='(http(s)?:)?//(\w|\.|/|:|\-|\d|=|\?)+\.(svg|png|jpg|jpeg|js|css|ico|gif)')
+    scrape_parser.add_argument('--exclude', default=DEFAULT_EXCLUDED_SCRAPE)
+    scrape_parser.add_argument('--pattern', default=DEFAULT_EXTERNAL_ASSETS_REGEX)
     scrape_parser.set_defaults(func=scrape)
 
     # parser for 'download' action
     download_parser = subparsers.add_parser('download')
     download_parser.set_defaults(func=download_assets)
 
-    # parser for 'internalize'
+    # parser for 'internalize' action
     internalize_parser = subparsers.add_parser('internalize')
-    internalize_parser.add_argument('--exclude', default=['.git', '.vscode', 'bower_components', 'node_modules', OUTPUT_FOLDERNAME, 'links.txt'])
+    internalize_parser.add_argument('--exclude', default=DEFAULT_EXCLUDED_INTERNALIZE)
     internalize_parser.set_defaults(func=internalize)
 
     args = parser.parse_args()
