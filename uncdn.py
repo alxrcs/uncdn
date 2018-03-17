@@ -1,7 +1,4 @@
-#!/usr/bin/env python2
-#-*-coding:utf-8-*-
-
-# TODO: Port to python3
+#!/usr/bin/env python3
 
 import os
 import re
@@ -101,9 +98,11 @@ def main():
 
     subparsers = parser.add_subparsers(
         title='subcommands',
-        description='valid subcommands',
-        help='usually you want to scrape first, and then download the assets'
+        description='Valid subcommands',
+        help='Usually you want to run `scrape` first, `download` the assets, and then `internalize` the project',
+        dest='parser'
     )
+    subparsers.required = True
 
     # parser for 'scrape' action
     scrape_parser = subparsers.add_parser('scrape')
